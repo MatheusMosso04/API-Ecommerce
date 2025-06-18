@@ -1,0 +1,6 @@
+ORM - Camada de abstração no qual seria feita as operações em relação ao banco, ou seja, através dela nós interagimos com o 
+banco de dados.
+A vantagem é que caso deseje trocar de banco, não seria necessário reescrever o código inteiro.
+Porém ORM muita das vezes não é utilizado por conta que possui limitações e pode prejudicar a performance, além disso causaria 
+dependências, isso por que o ORM seria a utilização de uma biblioteca (SQL Alchemy) e não seria algo de controle interno de cada
+empresa e sim uma biblioteca externa, ou seja, estaria vinculando o sistema a uma tecnologia externa.
