@@ -44,6 +44,53 @@ def delete_product(product_id): #Neste caso, irá receber essa informação do p
         return jsonify({"message": "Product deleted successfully"})
     return jsonify({"message": "Product not found"}), 404
 
+@app.route('/api/products/<int:product_id>', methods=["GET"])
+def product_details_get(product_id):
+    product = Product.query.get(product_id)
+    if product:
+        return jsonify({
+            "id": product.id, 
+            "name": product.name, 
+            "price": product.price, 
+            "description": product.description
+        })
+    return jsonify({"message": "Product not found"}), 404
+
+@app.route('/api/products/update/<int:product_id>', methods=["PUT"])
+def update_products(product_id):
+    product = Product.query.get(product_id) #Retorn seria baseado no product id que foi dado como parâmetro
+    if not product: #Nesse caso estaria negando o produto, logo caso não tenha tal produto no database irá retornar 404 Not found
+        return jsonify({"message": "Product not found"}), 404
+    
+    data = request.json
+    if 'name' in data:
+        product.name = data['name']
+
+    if 'price' in data:
+        product.price = data['price']
+
+    if 'description' in data:
+        product.description = data['description']
+
+    db.session.commit() #Necessário apenas o commit para gravar no banco, pois o mesmo já estaria cadastrado no database
+    return jsonify({"message": "Product updated succesfully"})
+
+@app.route('/api/products', methods=['GET']) #Rota para verificar os produtos que possui listados
+def get_products():
+    products = Product.query.all() #Já aqui, retornaria todos os produtos cadastrados
+    product_list = [] #Criada uma lista vazia para que seja possível apresentar todos os produtos cadastrados
+    for product in products: #For para percorrer por todos os produtos, criada a variavel product_data para possuir o que o produto tem
+        product_data = {
+            "id": product.id, 
+            "name": product.name, 
+            "price": product.price, 
+            "description": product.description
+        }
+        product_list.append(product_data) #Append é um método que recebe valores para adicionar na lista.
+    return jsonify(product_list) #Somente agora é possível retornar a lista, pois estaria passando por todos os produtos
+#Caso fosse realizado apenas um return do product_data, sem o For, retornaria apenas o primeiro produto.
+
+
 #Rotas: Definição de uma rota raiz, ou seja, uma página inicial e também uma função que será executada a partir de uma requisição
 #Para definir uma rota, é sempre utilizado o @ e o método "route". A raiz por padrão seria uma /, basicamente a página inicial
 @app.route('/')
