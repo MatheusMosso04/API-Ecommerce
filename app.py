@@ -1,6 +1,7 @@
 #Importação de bibliotecas
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS #Permite com que a API aceite requisições vindas de outros domínios
 
 #app seria uma váriavel que irá receber uma instância da classe Flask
 #Dentro do parentêses foi passado uma variável, cujo nome é "name"
@@ -8,6 +9,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db' #Linha de configuração do banco de dados
 
 db = SQLAlchemy(app) #Essa linha seria para a conexão com o banco de dados passando o parâmetro do app Flask
+CORS(app)
 
 #Modelagem 
 #Para realizar a modelagem do database seria necessário definir uma classe, nesse caso a primeira classe seria de produto
@@ -83,8 +85,7 @@ def get_products():
         product_data = {
             "id": product.id, 
             "name": product.name, 
-            "price": product.price, 
-            "description": product.description
+            "price": product.price #Não é adicionada na description para esse caso, para o usuário precisar utilzar a rota de detalhes
         }
         product_list.append(product_data) #Append é um método que recebe valores para adicionar na lista.
     return jsonify(product_list) #Somente agora é possível retornar a lista, pois estaria passando por todos os produtos
