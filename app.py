@@ -25,6 +25,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True) 
     username = db.Column(db.String(80), nullable=False, unique=True) #Unique = True, logo o username precisa ser único para cada usuário 
     password = db.Column(db.String(80), nullable=False)
+    cart = db.relationship('CartItem', backref='user', lazy=True)
 
 #Para realizar a modelagem do database seria necessário definir uma classe, nesse caso a primeira classe seria de produto
 class Product(db.Model): #Model vai servir de molde para a classe produto
@@ -32,6 +33,11 @@ class Product(db.Model): #Model vai servir de molde para a classe produto
     name = db.Column(db.String(120), nullable=False) #Definimos a string, quantidade de dados e o mesmo não pode ser nulo (nullable)
     price = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=True)#.Text não teria limitação de caracteres igual o string, opcional.
+
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) #Referenciando o ID da classe de usuário com uma chave estrangeira.
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False) #Referenciado o ID da classe de produto para que seja possível verificar qual seria o produto que será adicionado/excluído do carrinho
 
 #Autenticação
 @login_manager.user_loader #Essa função seria para que toda vez que for realizada uma requisição em uma rota protegida, seria necessário que o Login_required da rota recupere o usuário que está tentando acessar para verificar se é autenticado
