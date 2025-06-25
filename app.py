@@ -160,6 +160,18 @@ def add_to_cart(product_id):
         return jsonify ({'message': 'Item added to the cart successfully'})
     return jsonify ({'message': 'Failed to add item to the cart'}), 400
 
+@app.route('/api/cart/remove/<int:product_id>', methods=['DELETE'])
+@login_required
+def remove_from_cart(product_id):
+   
+   cart_item = CartItem.query.filter_by(user_id=current_user.id, product_id=product_id).first() #Nesse caso, foi criada a variável de cart item para que seja possível recuperar tanto a informação do usuário quanto do produto ao mesmo tempo sendo possível utilizando o método filter_by
+   
+   if cart_item:
+        db.session.delete(cart_item)
+        db.session.commit()
+        return jsonify({'message': 'Item removed from the cart successfully'})
+   return jsonify({'message': 'Failed to remove item from the cart'}), 400
+
 #Rotas: Definição de uma rota raiz, ou seja, uma página inicial e também uma função que será executada a partir de uma requisição
 #Para definir uma rota, é sempre utilizado o @ e o método "route". A raiz por padrão seria uma /, basicamente a página inicial
 #@app.route('/')
