@@ -2,10 +2,10 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS #Permite com que a API aceite requisições vindas de outros domínios
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user #Caso segure o Ctrl+Left Mouse, é possível ver as funções que o usermixin possui para esse caso do usuário
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user #Caso segure o Ctrl+Left Mouse, é possível ver as funções que o usermixin possui para esse caso do usuário
 #Login_user seria uma biblioteca para realizar a autenticação do usuário, já o Login Manager faria o gerenciamento dos usuários, quais estariam logados e quais não
 #Login_required responsável por obrigar o usuário a estar autenticado nas rotas definidas que necessitam estar logado/autenticado
-
+#Current_user permite verificar qual seria o usuário que está logado no momento
 
 #app seria uma váriavel que irá receber uma instância da classe Flask
 #Dentro do parentêses foi passado uma variável, cujo nome é "name"
@@ -25,7 +25,10 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True) 
     username = db.Column(db.String(80), nullable=False, unique=True) #Unique = True, logo o username precisa ser único para cada usuário 
     password = db.Column(db.String(80), nullable=False)
-    cart = db.relationship('CartItem', backref='user', lazy=True)
+    cart = db.relationship('CartItem', backref='user', lazy=True) #É criada uma relação entre a classe CartItem e a tabela do usuário, pois através do usuário nós conseguimos recuperar o carrinho dele e os itens que foram adicionados no mesmo
+#Backref permite que seja possível verificar a classe CartItem através do usuário, sendo assim possível recuperar o que consta em seu carrinho
+#Lazy (preguiça) faz com que ao recuperar o usuário não seria recuperado todos os itens que ele possui em seu carrinho, pois caso fosse acionada outra rota que é necessário recuperar o usuário, como o de add products, ele recuperaria todos os produtos que o usuário possui em seu carrinho
+#Então o lazy só recuperaria os itens do carrinho quando for realizada a tentativa de acessar essas informações.
 
 #Para realizar a modelagem do database seria necessário definir uma classe, nesse caso a primeira classe seria de produto
 class Product(db.Model): #Model vai servir de molde para a classe produto
@@ -36,7 +39,7 @@ class Product(db.Model): #Model vai servir de molde para a classe produto
 
 class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) #Referenciando o ID da classe de usuário com uma chave estrangeira.
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) #Referenciando o ID da classe de usuário com uma chave estrangeira. Necessário colocar o nullable pq é uma chave estrangeira, no caso da primary key não é necessário.
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False) #Referenciado o ID da classe de produto para que seja possível verificar qual seria o produto que será adicionado/excluído do carrinho
 
 #Autenticação
@@ -140,11 +143,28 @@ def get_products():
 #Caso fosse realizado apenas um return do product_data, sem o For, retornaria apenas o primeiro produto.
 
 
+#Checkout - Rota do carrinho
+
+@app.route('/api/cart/add/<int:product_id>', methods=['POST'])
+@login_required #Pois seria necessário verificar quem estaria logado para ser possível adicionar no carrinho do usuário corretamente, para não ser adicionado o produto no carrinho de outro usuário
+def add_to_cart(product_id):
+#Necessário ter o usuário e o Produto para ser possível realizar a inclusão do produto no carrinho e ser feita a utilização dessa rota
+    user = User.query.get(int(current_user.id)) #Criada a variável user para que receba o valor da consulta (query) e recupere o usuário através do get, e o current_user entra para que seja possível identificar o usuário atual da sessão
+
+    product = Product.query.get(product_id)
+
+    if user != None and product != None: #Esse != None seria o diferente de None, então pode ser considerado a mesma linha do que if user and product:, pois nesse caso estaria considerando se possui o usuário e produto, e no que foi usado seria se o usuário for diferente de nulo e produto também.
+        cart_item = CartItem(user_id=user.id, product_id=product.id) #Está sendo criada uma instância do carrinho com as informações do ID do usuário e produto, para que assim seja possível realizar a adição do mesmo no carrinho
+        db.session.add(cart_item)
+        db.session.commit()
+        return jsonify ({'message': 'Item added to the cart successfully'})
+    return jsonify ({'message': 'Failed to add item to the cart'}), 400
+
 #Rotas: Definição de uma rota raiz, ou seja, uma página inicial e também uma função que será executada a partir de uma requisição
 #Para definir uma rota, é sempre utilizado o @ e o método "route". A raiz por padrão seria uma /, basicamente a página inicial
-@app.route('/')
-def hello_world(): #Aqui será definido a função dessa rota, no caso o Hello World
-    return 'Hello World'
+#@app.route('/')
+#def hello_world(): -> Aqui será definido a função dessa rota, no caso o Hello World
+   #return 'Hello World'
 
 if __name__ == "__main__": #Necessário verificar se o arquivo está sendo executado diretamente
     app.run(debug=True) #Utilizado para realizar a depuração, ser possível requisitar. Geralmente é acompanhado de uma condição
