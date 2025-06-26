@@ -172,6 +172,38 @@ def remove_from_cart(product_id):
         return jsonify({'message': 'Item removed from the cart successfully'})
    return jsonify({'message': 'Failed to remove item from the cart'}), 400
 
+
+@app.route('/api/cart', methods=['GET'])
+@login_required
+def view_cart():
+
+    user = User.query.get(int(current_user.id)) #É recuperado o usuário atual da sessão para ser verificado o carrinho
+    cart_items = user.cart #Essa linha só é possível graças a relação da tabela de usuário e carrinho que consta na linha, cart = db.relationship('CartItem', backref='user', lazy=True) pois ela permite que seja retornada uma lista dos itens que o usuário em questão possui no carrinho
+    cart_content = [] #Foi criada essa lista para ser possível retornar a lista da linha acima.
+    for cart_item in cart_items:
+        product = Product.query.get(cart_item.product_id) #Linha para que mostre qual seria o produto em questão que consta no carrinho, a informação que o mesmo possui
+        cart_content.append({
+                                "id": cart_item.id,
+                                "user_id": cart_item.user_id,
+                                "product_id": cart_item.product_id,
+                                "product_name": product.name, 
+                                "product_price": product.price 
+                            })
+    return jsonify(cart_content)
+    return jsonify({'message': 'Unauthorized. User not logged in'}), 401
+
+
+@app.route('/api/cart/checkout', methods=['POST'])
+@login_required
+def checkout():
+    user = User.query.get(int(current_user.id))
+    cart_items = user.cart
+    for cart_item in cart_items:
+        db.session.delete(cart_item)
+    db.session.commit()
+    return jsonify({'message': 'Checkout succesful. Cart has been cleared'})
+
+
 #Rotas: Definição de uma rota raiz, ou seja, uma página inicial e também uma função que será executada a partir de uma requisição
 #Para definir uma rota, é sempre utilizado o @ e o método "route". A raiz por padrão seria uma /, basicamente a página inicial
 #@app.route('/')
