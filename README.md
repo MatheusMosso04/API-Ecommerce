@@ -25,5 +25,5 @@ A API implementa funcionalidades essenciais de um ambiente de compras online, co
 
 ---
 
-## 📂 Estrutura do Projeto (exemplo simplificado)  
+
 
