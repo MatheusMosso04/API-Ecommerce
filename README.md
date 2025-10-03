@@ -1,6 +1,6 @@
 # 🛒 API de E-commerce com Flask  
 
-Este projeto consiste no desenvolvimento de uma **API RESTful** para simular um sistema de e-commerce, construída em **Python** utilizando o framework **Flask**.  
+Este projeto consiste no desenvolvimento de uma **API** para simular um sistema de e-commerce, construída em **Python** utilizando o framework **Flask**.  
 A API implementa funcionalidades essenciais de um ambiente de compras online, como listagem de produtos, gerenciamento de carrinho e finalização de pedidos.  
 
 ---
